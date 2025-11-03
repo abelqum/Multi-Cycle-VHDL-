@@ -21,8 +21,8 @@ architecture Behavioral of RF is
    type RegFile is array (0 to 3) of std_logic_vector(15 downto 0);
 signal TablaReg : RegFile := (
     0 => "00000000" & "00000000",  -- R0 = 0
-    1 => "00000000" & "00000000",  -- R1 = 0 (aquí se guardará PC+1)
-    2 => "00000000" & "00000000",  -- R2 = 8 (dirección de salto)
+    1 => "00000000" & "00000000",  -- R1 = 0 
+    2 => "00000000" & "00000000",  -- R2 = 8 
     3 => "00000000" & "00000000"   -- R3 = 0
 );
 
