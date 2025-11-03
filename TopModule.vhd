@@ -6,7 +6,9 @@ use IEEE.NUMERIC_STD.ALL;
 entity TopModule is
 port( 
         clk_27,reset,pause_run: in std_logic;
-        Sel_program: in std_logic_vector(1 downto 0);
+        Sel_program: in std_logic_vector(2 downto 0); --microswitch
+        PC_Btn: in std_logic; --boton para cambiar programa
+        PC_Btn_out: out std_logic; --boton para cambiar programa
         seg: out std_logic_vector(0 to 7);
         an: out std_logic_vector(3 downto 0);
         leds,ledsd: out std_logic_vector(3 downto 0);
@@ -22,6 +24,7 @@ component binbcd16 is
         clk     : in  std_logic;
         reset   : in  std_logic;
         binario : in  STD_LOGIC_VECTOR (15 downto 0);
+        signo   : in  std_logic;  -- '1' para negativo, '0' para positivo
         bcd     : out STD_LOGIC_VECTOR (15 downto 0)
     );
 end component;
@@ -134,11 +137,13 @@ component UC is
     );
 
 end component;
+signal UC_reset : std_logic;
+signal EnPC_Final : std_logic; 
 signal Mux_PC,Mux_alub: std_logic_vector(1 downto 0);
 signal IR,RAM_out,dat_in: std_logic_vector(23 downto 0);
-signal entrada_display,entrada_display1, Resultado_alu,Mux_ALUA_out,Mux_ALUB_out,SignExt_out,Mux_Data_out,RF_A_out,RF_B_out,mar16: std_logic_vector(15 downto 0);
+signal entrada_display,entrada_display1, Resultado_alu,Mux_ALUA_out,Mux_ALUB_out,SignExt_out,Mux_Data_out,RF_A_out,RF_B_out,mar16,Ram_16: std_logic_vector(15 downto 0);
 signal Sel_op: std_logic_vector(3 downto 0);
-signal Residuo,Mux_Dest_out,Mux_Addr_out,Mux_PC_out,MAR: std_logic_vector(7 downto 0):=(others=>'0');
+signal Residuo,Mux_Dest_out,Mux_Addr_out,Mux_PC_out,MAR,Program_dir,PC_actual: std_logic_vector(7 downto 0):=(others=>'0');
 signal Err_div,OvF_TEMP,SF_TEMP,ZF_TEMP,CF_TEMP,EnRegFile,EnRam,RW,EnIR,EnPC,EnFlags,OvF_out,SF_out,ZF_out,CF_out: std_logic:='0';
 signal Mux_addr,Mux_rdata,Mux_dest,Mux_alua: std_logic:='0';
 signal Display_En : std_logic;
@@ -159,7 +164,7 @@ begin
                  contador_1hz <= contador_1hz + 1;
                clk          <= '0'; -- **Salida cambiada**
             end if;
-         end if;
+         end if; 
     end process Generador_Enable_1Hz;
 
 Driver_Display: display port map (
@@ -178,24 +183,43 @@ begin
         -- Si Display_En = '0', mantiene el último valor mostrado
     end if;
 end process;
+-- En la arquitectura, modifica la instancia del convertidor:
 Convertidor_BCD: binbcd16 port map (
     clk     => clk,
     reset   => reset,
-    binario => mar16,  
+    binario => entrada_display1,  
+    signo   => SF_out, 
     bcd     => entrada_display
 );
+
+PC_Btn_out<=PC_Btn;
+--MUX ENTRE PC+1, JUMP, JALR, BRANCH
 mar16<="00000000"&MAR;
  with Mux_PC select Mux_PC_out <=
        Resultado_alu(7 downto 0) when "00", --PC+1
       IR(7 downto 0) when "01",    --JUMP
-       RF_A_out(7 downto 0) when "10", --JALR
+       RF_B_out(7 downto 0) when "10", --JALR
         (others => '0') when others;
 
+--MUX ENTRE PRO1,PRO2,PRO3,PRO4,PRO5
+ with Sel_program select Program_dir <=
+       "00000000" when "000", --P1
+      "00001001" when "001",  --P2
+       "00010011" when "010", --P3
+        (others => '0') when others;
+
+--MUX ENTRE MICROSWITCH Y PC DEL CPU
+ with PC_Btn select PC_actual <=
+       Program_dir when '0', --MICROSWITCH
+      Mux_PC_out when '1',  --PC DEL CPU
+        (others => '0') when others;
+
+EnPC_Final <= EnPC or (not PC_Btn);
 Contador_Programa: PC port map (
     Clk   => clk,
     Reset => reset,
-    D_in  => Mux_PC_out, -- Conectar al Mux de entrada del PC
-    EnPC  => EnPC,
+    D_in  => PC_actual, -- Conectar al Mux de entrada del PC
+    EnPC  => EnPC_Final,
     D_out => MAR
 );
 
@@ -204,11 +228,11 @@ Contador_Programa: PC port map (
         Resultado_alu(7 downto 0) when '1',
        (others => '0') when others;
 
-dat_in<="00000000"&RF_B_out;
+dat_in<="00000000"&RF_A_out;
 Memoria_Principal: RAM port map (
     clk      => clk,
     Adress   => Mux_Addr_out, -- Conectar a Mux_Addr
-    Data_in  => dat_in, -- Conectar a RF B Out (para SW)
+    Data_in  => dat_in, -- Conectar a RF A Out (para SW)
     EnRAM    => EnRam,
     RW       => RW,
     Data_out => RAM_out -- Va al IR y al Mux de datos del RF
@@ -226,9 +250,9 @@ Registro_Instruccion: InstReg port map (
         IR(15 downto 8) when '0', -- A
         IR(7 downto 0) when '1',  -- B
         (others => '0') when others;
-
+RAM_16<=RAM_out(15 downto 0);
  with Mux_rdata select Mux_Data_out <=
-        RAM_out(15 downto 0) when '0', -- RAM_out
+        RAM_16 when '0', -- RAM_out
         Resultado_alu when '1',  -- ACUMULADOR ALU
         (others => '0') when others;
 
@@ -289,11 +313,11 @@ Registro_Banderas: FlagReg port map (
     SF_out  => SF_out,
     CF_out  => CF_out
 );
-
+UC_reset <= reset and PC_Btn;--para salir del halt
 Unidad_Control_inst: UC port map (
     Instruction => IR,         -- Input: Full instruction from InstReg
     clk         => clk,             -- Input: System clock
-    reset       => reset,             -- Input: System reset
+    reset       => UC_reset,             -- Input: System reset
     CF          => CF_out,    -- Input: Carry flag from FlagReg
     ZF          => ZF_out,    -- Input: Zero flag from FlagReg
     SF          => SF_out,    -- Input: Sign flag from FlagReg
