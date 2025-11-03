@@ -38,7 +38,7 @@ architecture Behavioral of UC is
     -- El resto de las instrucciones (mantienen misma estructura)
     LW1, LW2, LW3, SW1, SW2,
     MOVRR1, MOVRR2, MOVAR1, MOVAR2, MOVRA1, MOVRA2,
-    JALR1, JALR2, JMP,
+    JALR1, JALR2, JALR3, JMP,
     BNZ1, BNZ2, BZ1, BZ2, BS1, BS2, BNS1, BNS2,
     BC1, BC2, BNC1, BNC2, BOV1, BOV2, BNOV1, BNOV2,
     NOP, HALT
@@ -397,37 +397,48 @@ begin
 
 
         -- == INSTRUCCIONES DE MEMORIA ==
-    when LW1 =>
-        -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(0),MUX_ALUB(11),ALU_Op(0000)
-        -- Calcula dirección: PC + Offset (Inmediato) - NO MOSTRAR
-        palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
-        siguiente <= LW2;
-        
-    when LW2 =>
-        -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(1),EnRAM(1),RW(1),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
-        -- Lee de RAM en la dirección calculada (ALU Result) - NO MOSTRAR
-        palabra_temp <= '0' & "00"&'0'&'0'&'1'&'1'&'1'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
-        siguiente <= LW3;
-        
-    when LW3 =>
-        -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(1),MUX_RData(0),EnRF(1),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
-        -- Escribe dato leído en registro destino (RegB) - MOSTRAR
-        palabra_temp <= '1' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'1'&'0'&'1'&'X'&"XX"&"0000";
-        siguiente <= FETCH;
+when LW1 =>
+    -- Calcula dirección: PC + Offset (igual que BZ1)
+    -- MUX_ALUA(0)=PC, MUX_ALUB(11)=Inmediato, ALU_Op(0000)=ADD
+    estados <= "0101";
+        palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'0'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
+    siguiente <= LW2;
+    
+  when LW2 =>
+    -- Lee RAM en dirección calculada (ALU Result)
+    -- Mux_Addr(1)=usa dirección ALU, EnRAM(1), RW(1)=lectura
+    estados <= "0110";
+ --         PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(0),MUX_ALUB(11),ALU_Op(0000)
+    palabra_temp <= '0' & "00"&'0'&'0'&'1'&'1'&'1'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
+    siguiente <= LW3;
+ when LW3 =>
+    -- Guarda RAM_out en registro destino (IR[15:8])
+    -- MUX_Dest(0), MUX_RData(0)=RAM_out, EnRF(1)
+    estados <= "0111";
+--         PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(0),MUX_ALUB(11),ALU_Op(0000)
+    palabra_temp <= '0' & "00"&'0'&'0'&'1'&'1'&'1'&'0'&'0'&'0'&'1'&'0'&"11"&"0000";
+    siguiente <= FETCH;
 
-    when SW1 =>
-        -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(0),MUX_ALUB(11),ALU_Op(0000)
-        -- Calcula dirección: PC + Offset (Inmediato) - NO MOSTRAR
-        palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
-        siguiente <= SW2;
-        
+
+
+  when SW1 =>
+   -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(0),MUX_ALUB(11),ALU_Op(0000)
+        -- Calcula PC + offset si ZF=0 - NO MOSTRAR
+    estados <= "1000";
+    palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'0'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
+    siguiente <= SW2;
+
     when SW2 =>
-        -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(1),EnRAM(1),RW(0),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
-        -- Escribe RegB en RAM en la dirección calculada - NO MOSTRAR
-        palabra_temp <= '0' & "00"&'0'&'0'&'1'&'1'&'0'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+       -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0000)
+        -- Write Back de ADDI manteniendo ALU_Op
+        estados <= "0100";
+
+    palabra_temp <= '1' & "00"&'0'&'0'&'1'&'1'&'0'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
-    -- == INSTRUCCIONES DE MOVIMIENTO ==
+
+
+-- == INSTRUCCIONES DE MOVIMIENTO ==
     when MOVRR1 =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0000)
         -- Mueve RegB a RegA (ADD con cero) - NO MOSTRAR
@@ -472,17 +483,28 @@ begin
         siguiente <= FETCH;
 
 when JALR1 =>
-    -- Paso 1: Guardar PC+1 en el registro destino (R1)
-    -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(0),EnRF(1),MUX_ALUA(0),MUX_ALUB(01),ALU_Op(0000)
-    palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'0'&'0'&'1'&'0'&"01"&"0000";
+    -- Paso 1: Guardar PC+1 en registro destino (RegA)
+    -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(0),MUX_ALUB(01),ALU_Op(0000)
+    -- Calcula PC + 1 y guarda en RegA
+    estados <= "0101";
+    palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'0'&"10"&"0000";
     siguiente <= JALR2;
-    
-when JALR2 =>
-    -- Paso 2: Saltar a la dirección en el registro fuente (R2)  
-    -- PCsel(10),EnFlags(0),EnPC(1),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
-    palabra_temp <= '0' & "01"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"XXXX";
-    siguiente <= FETCH;
 
+when JALR2 =>
+    -- Paso 2: Preparar salto - leer dirección desde RegB
+    -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
+    -- Solo asegura que RF_B_out tenga el valor correcto para el siguiente ciclo
+    estados <= "0110";
+    palabra_temp <= '0' & "10"&'0'&'0'&'X'&'0'&'X'&'0'&'X'&'1'&'0'&'0'&"10"&"0000";
+    siguiente <= JALR3;
+
+when JALR3 =>
+    -- Paso 3: Ejecutar salto a dirección en RegB
+    -- PCsel(10),EnFlags(0),EnPC(1),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
+    -- Salta a la dirección almacenada en RF_B_out
+    estados <= "0111";
+    palabra_temp <= '0' & "10"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"XXXX";
+    siguiente <= FETCH;
     -- == BRANCHES CONDICIONALES ==
     when BNZ1 =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(0),MUX_ALUB(11),ALU_Op(0000)
@@ -498,7 +520,7 @@ when JALR2 =>
     when BNZ2 =>
         -- PCsel(00),EnFlags(0),EnPC(1),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
         -- Actualiza PC con dirección de branch - NO MOSTRAR
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"XXXX";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BZ1 =>
@@ -511,7 +533,7 @@ when JALR2 =>
         end if;
 
     when BZ2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BS1 =>
@@ -524,7 +546,7 @@ when JALR2 =>
         end if;
 
     when BS2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BNS1 =>
@@ -537,7 +559,7 @@ when JALR2 =>
         end if;
 
     when BNS2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BC1 =>
@@ -550,7 +572,7 @@ when JALR2 =>
         end if;
 
     when BC2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BNC1 =>
@@ -563,7 +585,7 @@ when JALR2 =>
         end if;
 
     when BNC2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BOV1 =>
@@ -576,7 +598,7 @@ when JALR2 =>
         end if;
 
     when BOV2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when BNOV1 =>
@@ -589,7 +611,7 @@ when JALR2 =>
         end if;
 
     when BNOV2 =>
-        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"0000";
+        palabra_temp <= '0' & "00"&'0'&'1'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
     when NOP =>
@@ -601,6 +623,7 @@ when JALR2 =>
     when HALT =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
         -- Detiene la ejecución manteniéndose en este estado - NO MOSTRAR
+        estados<="0000";
         palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"XXXX";
         siguiente <= HALT;
 
