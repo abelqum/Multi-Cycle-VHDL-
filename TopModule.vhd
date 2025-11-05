@@ -174,13 +174,14 @@ Driver_Display: display port map (
     an        => an
 );
 
-process(clk)
+process(clk, reset) 
 begin
-    if rising_edge(clk) then
+    if UC_reset = '0' then
+        entrada_display1 <= (others => '0');
+    elsif rising_edge(clk) then
         if Display_En = '1' then
-            entrada_display1 <= Resultado_alu;  -- Solo mostrar cuando está habilitado
+            entrada_display1 <= RF_A_out;
         end if;
-        -- Si Display_En = '0', mantiene el último valor mostrado
     end if;
 end process;
 -- En la arquitectura, modifica la instancia del convertidor:
@@ -203,11 +204,12 @@ mar16<="00000000"&MAR;
 
 --MUX ENTRE PRO1,PRO2,PRO3,PRO4,PRO5
  with Sel_program select Program_dir <=
-       "00000000" when "000", --P1
-      "00001001" when "001",  --P2
-       "00010011" when "010", --P3
+       "00000000" when "000", -- P1 (Inicia en 0)
+       "00001110" when "001", -- P2 (Inicia en 14)
+       "00011110" when "010", -- P3 (Inicia en 30)
+       "00101111" when "011", -- P4 (Inicia en 47)
+       "00110000" when "100", -- P5 (Inicia en 48)
         (others => '0') when others;
-
 --MUX ENTRE MICROSWITCH Y PC DEL CPU
  with PC_Btn select PC_actual <=
        Program_dir when '0', --MICROSWITCH
