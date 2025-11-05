@@ -41,7 +41,7 @@ architecture Behavioral of UC is
     JALR1, JALR2, JALR3, JMP,
     BNZ1, BNZ2, BZ1, BZ2, BS1, BS2, BNS1, BNS2,
     BC1, BC2, BNC1, BNC2, BOV1, BOV2, BNOV1, BNOV2,
-    NOP, HALT
+    NOP, HALT,DISP
 );
 
 signal presente, siguiente : FSM := FETCH;
@@ -90,7 +90,7 @@ constant ROM_DECO : Deco := (
     34  => LSLI,
     35  => ASRI,
     36  => HALT,
-
+    37  => DISP,
     -- Opcodes restantes (37-255)
     others => FETCH
 );
@@ -138,7 +138,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0000)
         -- Write Back de ADD manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0000";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0000";
         siguiente <= FETCH;
 
     when SUB =>
@@ -152,7 +152,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0001)
         -- Write Back de SUB manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0001";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0001";
         siguiente <= FETCH;
 
     when MULT =>
@@ -166,7 +166,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0010)
         -- Write Back de MULT manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0010";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0010";
         siguiente <= FETCH;
 
     when DIV =>
@@ -180,7 +180,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0011)
         -- Write Back de DIV manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0011";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0011";
         siguiente <= FETCH;
 
     when AND1 =>
@@ -194,7 +194,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0101)
         -- Write Back de AND manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0101";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0101";
         siguiente <= FETCH;
 
     when OR1 =>
@@ -208,7 +208,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0110)
         -- Write Back de OR manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0110";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0110";
         siguiente <= FETCH;
 
     when COMP1 =>
@@ -222,7 +222,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(0111)
         -- Write Back de COMP1 manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0111";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"0111";
         siguiente <= FETCH;
 
     when COMP2 =>
@@ -236,7 +236,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(1000)
         -- Write Back de COMP2 manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"1000";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"1000";
         siguiente <= FETCH;
 
     when LSL =>
@@ -250,7 +250,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(1001)
         -- Write Back de LSL manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"1001";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"1001";
         siguiente <= FETCH;
 
     when ASR =>
@@ -264,7 +264,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(00),ALU_Op(1010)
         -- Write Back de ASR manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"1010";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"00"&"1010";
         siguiente <= FETCH;
 
     -- === OPERACIONES INMEDIATAS CON 2 ESTADOS ===
@@ -279,7 +279,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0000)
         -- Write Back de ADDI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0000";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0000";
         siguiente <= FETCH;
 
     when SUBI =>
@@ -293,7 +293,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0001)
         -- Write Back de SUBI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0001";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0001";
         siguiente <= FETCH;
 
     when MULI =>
@@ -307,7 +307,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0010)
         -- Write Back de MULI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0010";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0010";
         siguiente <= FETCH;
 
     when DIVI =>
@@ -321,7 +321,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0011)
         -- Write Back de DIVI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0011";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0011";
         siguiente <= FETCH;
 
     when ANDI1 =>
@@ -335,7 +335,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0101)
         -- Write Back de ANDI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0101";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0101";
         siguiente <= FETCH;
 
     when ORI1 =>
@@ -349,7 +349,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(0110)
         -- Write Back de ORI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0110";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"0110";
         siguiente <= FETCH;
 
     when LSLI =>
@@ -363,7 +363,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(1001)
         -- Write Back de LSLI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"1001";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"1001";
         siguiente <= FETCH;
 
     when ASRI =>
@@ -377,7 +377,7 @@ begin
         -- PCsel(00),EnFlags(1),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(1),EnRF(1),MUX_ALUA(1),MUX_ALUB(11),ALU_Op(1010)
         -- Write Back de ASRI manteniendo ALU_Op
         estados <= "0100";
-        palabra_temp <= '1' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"1010";
+        palabra_temp <= '0' & "00"&'1'&'0'&'X'&'0'&'X'&'0'&'0'&'1'&'1'&'1'&"11"&"1010";
         siguiente <= FETCH;
 
     -- === OPERACIONES DE 1 CICLO ===
@@ -433,7 +433,7 @@ when LW1 =>
         -- Write Back de ADDI manteniendo ALU_Op
         estados <= "0100";
 
-    palabra_temp <= '1' & "00"&'0'&'0'&'1'&'1'&'0'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
+    palabra_temp <= '0' & "00"&'0'&'0'&'1'&'1'&'0'&'0'&'X'&'X'&'0'&'0'&"11"&"0000";
         siguiente <= FETCH;
 
 
@@ -448,7 +448,7 @@ when LW1 =>
     when MOVRR2 =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(0),EnRF(1),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
         -- Escribe resultado en RegA - MOSTRAR
-        palabra_temp <= '1' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'0'&'0'&'1'&'X'&"XX"&"XXXX";
+        palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'0'&'0'&'1'&'X'&"XX"&"XXXX";
         siguiente <= FETCH;
 
     when MOVAR1 =>
@@ -460,7 +460,7 @@ when LW1 =>
     when MOVAR2 =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(0),MUX_RData(0),EnRF(1),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
         -- Escribe resultado en RegA - MOSTRAR
-        palabra_temp <= '1' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'0'&'0'&'1'&'X'&"XX"&"XXXX";
+        palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'0'&'0'&'1'&'X'&"XX"&"XXXX";
         siguiente <= FETCH;
 
     when MOVRA1 =>
@@ -472,7 +472,7 @@ when LW1 =>
     when MOVRA2 =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(1),MUX_RData(0),EnRF(1),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
         -- Escribe resultado en RegB - MOSTRAR
-        palabra_temp <= '1' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'1'&'0'&'1'&'X'&"XX"&"XXXX";
+        palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'1'&'0'&'1'&'X'&"XX"&"XXXX";
         siguiente <= FETCH;
 
     -- == SALTOS Y BRANCHES ==
@@ -626,6 +626,13 @@ when JALR3 =>
         estados<="0000";
         palabra_temp <= '0' & "00"&'0'&'0'&'X'&'0'&'X'&'0'&'X'&'X'&'0'&'X'&"XX"&"XXXX";
         siguiente <= HALT;
+    when DISP =>
+        -- Muestra el valor de RF(A) en el display y continúa.
+        -- Habilita el latch del display (Display_En = '1').
+        estados <= "1111"; -- (LEDs indican estado DISP)
+        --                Display_En|PC_sel|EnFlags|EnPC |Mux_Addr|EnRAM|RW   |EnIR |MUX_Dest|MUX_RData|EnRF |MUX_ALUA|MUX_ALUB|ALU_Op
+        palabra_temp <= '1' &       "00" & '0' &   '0' & 'X' &    '0' & 'X' & '0' & 'X' &    'X' &     '0' & 'X' &    "XX" &  "XXXX";
+        siguiente <= FETCH;
 
     when others =>
         -- PCsel(00),EnFlags(0),EnPC(0),Mux_Addr(X),EnRAM(0),RW(X),EnIR(0),MUX_Dest(X),MUX_RData(X),EnRF(0),MUX_ALUA(X),MUX_ALUB(XX),ALU_Op(XXXX)
