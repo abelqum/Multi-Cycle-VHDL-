@@ -7,6 +7,7 @@ entity UC is
         Instruction : in  std_logic_vector(23 downto 0);
         clk         : in  std_logic;
         reset       : in  std_logic;
+        pause_run   : in  std_logic;
         CF, ZF, SF, OvF : in  std_logic;
         EnPC, Mux_Addr, EnRAM, RW, EnIR, MUX_Dest, MUX_RData, EnRF, MUX_ALUA,EnFlags : out std_logic;
         MUX_ALUB,PC_sel : out std_logic_vector(1 downto 0);
@@ -98,11 +99,12 @@ constant ROM_DECO : Deco := (
 begin
 
     -- ACTUALIZA AL SIGUIENTE ESTADO
-    process(clk, reset)
+  process(clk, reset)
     begin
         if reset = '0' then
             presente <= FETCH;
-        elsif rising_edge(clk) then
+        -- Añade "and pause_run = '1'"
+        elsif rising_edge(clk) and pause_run = '1' then
             presente <= siguiente;
         end if;
     end process;
