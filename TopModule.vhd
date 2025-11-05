@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity TopModule is
 port( 
-        clk_27,reset,pause_run: in std_logic;
+        clk,reset,pause_run: in std_logic;
         Sel_program: in std_logic_vector(2 downto 0); --microswitch
         PC_Btn: in std_logic; --boton para cambiar programa
         PC_Btn_out: out std_logic; --boton para cambiar programa
@@ -149,27 +149,27 @@ signal Mux_addr,Mux_rdata,Mux_dest,Mux_alua: std_logic:='0';
 signal Display_En : std_logic;
 constant MAX_COUNT_1SEC : natural := 27000000; -- 27 Millones de ciclos para 1 segundo a 27MHz 27000000
     signal contador_1hz : natural range 0 to MAX_COUNT_1SEC - 1 := 0;
-    signal clk         : std_logic := '0';
+   -- signal clk         : std_logic := '0';
 begin
- Generador_Enable_1Hz: process(clk_27, reset) -- **Nombre de entrada cambiado a 'clk_27'**
-   begin
-        if reset = '0' then -- Asumiendo reset activo-bajo
-            contador_1hz <= 0;
-            clk          <= '0'; -- **Salida cambiada**
-        elsif rising_edge(clk_27) then -- **Entrada cambiada**
-            if contador_1hz = MAX_COUNT_1SEC - 1 then
-                contador_1hz <= 0;
-                clk          <= '1'; -- **Salida cambiada**
-            else
-                 contador_1hz <= contador_1hz + 1;
-               clk          <= '0'; -- **Salida cambiada**
-            end if;
-         end if; 
-    end process Generador_Enable_1Hz;
+--  Generador_Enable_1Hz: process(clk_27, reset) -- **Nombre de entrada cambiado a 'clk_27'**
+--    begin
+--         if reset = '0' then -- Asumiendo reset activo-bajo
+--             contador_1hz <= 0;
+--             clk          <= '0'; -- **Salida cambiada**
+--         elsif rising_edge(clk_27) then -- **Entrada cambiada**
+--             if contador_1hz = MAX_COUNT_1SEC - 1 then
+--                 contador_1hz <= 0;
+--                 clk          <= '1'; -- **Salida cambiada**
+--             else
+--                  contador_1hz <= contador_1hz + 1;
+--                clk          <= '0'; -- **Salida cambiada**
+--             end if;
+--          end if; 
+--     end process Generador_Enable_1Hz;
 
 Driver_Display: display port map (
     Datos     => entrada_display, 
-    clk_27mhz => clk_27, 
+    clk_27mhz => clk, 
     seg       => seg,
     an        => an
 );
